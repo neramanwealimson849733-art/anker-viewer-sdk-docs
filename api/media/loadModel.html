@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="https://studio3d-sit.anker-in.com/anker-viewer/icons/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anker3D-三维平台模型加载</title>
+  <link type="text/css" rel="stylesheet" href="style/main.css">
+</head>
+<body>
+
+<div id="anker-viewer"></div>
+<script type="module">
+  //引入SDK
+  import * as Anker3D from "../src/index.ts";
+
+  //获取容器
+  const container = document.getElementById('anker-viewer');
+
+  //创建查看器
+  const viewer = new Anker3D.Viewer(container);
+
+  //加载模型
+  viewer.loadModel({
+    urlOrId:'M22AD1BD5E',//三维平台模型id
+    onLoad:(model)=>{
+      console.log('模型加载完成！',model);
+    },
+    onProgress:(progress) => {
+      console.log('模型加载进度：'+progress);
+    },
+    onError:(err) => {
+      console.error(err);
+    },
+    position:[0,0,0],//位置
+    rotation:[0,0,0],//旋转
+    scale:[1,1,1],//缩放
+    scene:viewer.scene,//模型所在的场景，默认添加到默认场景中
+    isAutoCenter:true,//是否自动居中，默认为true
+    scaleFactor:1.1,//模型自动居中的缩放系数，该系数影响相机与模型的距离，默认为1.5，值越大模型越小，默认为1.1
+    bottomShadow:true,//生成底部阴影，默认为true
+  });
+
+  // 挂载到全局 window 对象，便于调试
+  window.viewer = viewer;
+  window.Anker3D = Anker3D;
+
+
+</script>
+</body>
+</html>

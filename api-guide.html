@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API 使用示例 - Anker3D SDK</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 250px;
+      background: #f8f9fa;
+      border-right: 1px solid #ddd;
+      padding: 20px;
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      color: #2c3e50;
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .sidebar > ul > li {
+      margin: 8px 0;
+    }
+    .sidebar a {
+      color: #555;
+      text-decoration: none;
+      display: block;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    .sidebar a:hover {
+      background: #e9ecef;
+      color: #007bff;
+    }
+    .sidebar a.active {
+      background: #007bff;
+      color: white;
+    }
+    .nav-section {
+      cursor: pointer;
+      user-select: none;
+      padding: 8px 10px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-top: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9em;
+    }
+    .nav-section:hover {
+      background: #e9ecef;
+      border-radius: 4px;
+    }
+    .nav-section::after {
+      content: '◀';
+      display: inline-block;
+      font-size: 0.7em;
+      color: #999;
+      transition: transform 0.3s ease;
+      font-weight: normal;
+    }
+    .nav-section:not(.collapsed)::after {
+      content: '▼';
+    }
+    .nav-subitems {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding-left: 20px;
+    }
+    .nav-subitems li {
+      padding-left: 10px;
+    }
+    .nav-section.collapsed + .nav-subitems {
+      max-height: 0;
+    }
+    .content {
+      /* 留出侧栏的实际占位（宽度250 + 左右padding 40 + 1px 边框），并再预留一些间距 */
+      margin-left: 300px;
+      max-width: 900px;
+      margin-right: auto;
+      padding: 20px 40px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    pre {
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+    }
+    .note {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .example {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+    }
+    .example strong {
+      color: #666;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .content h2 {
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+      margin-top: 80px;
+      margin-bottom: 40px;
+      color: #2c3e50;
+    }
+    .content h2:first-of-type {
+      margin-top: 20px;
+    }
+    .content h3 {
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: #34495e;
+    }
+    h4 {
+      margin-top: 20px;
+      color: #555;
+      font-size: 1.1em;
+    }
+    p {
+      color: #555;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <h3>📖 API 使用示例</h3>
+      <ul>
+        <li>
+          <div class="nav-section">基础 API</div>
+          <ul class="nav-subitems">
+            <li><a href="#viewer-props">Viewer 属性</a></li>
+            <li><a href="#basic-methods">基础方法</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="nav-section">模型管理</div>
+          <ul class="nav-subitems">
+            <li><a href="#basic-load">基础加载</a></li>
+            <li><a href="#full-load">完整加载</a></li>
+            <li><a href="#resource-id-load">使用资源 ID</a></li>
+            <li><a href="#model-params">ModelParams</a></li>
+            <li><a href="#model-operations">模型操作</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="nav-section">相机控制</div>
+          <ul class="nav-subitems">
+            <li><a href="#view-switch">快速视角切换</a></li>
+            <li><a href="#flyto">flyTo 动画</a></li>
+            <li><a href="#save-restore-view">保存/恢复视角</a></li>
+            <li><a href="#save-view-methods">视角管理方法</a></li>
+            <li><a href="#model-focus">模型聚焦</a></li>
+            <li><a href="#horizontal-hunting">水平摆动</a></li>
+            <li><a href="#view-interface">View 接口</a></li>
+            <li><a href="#flyview-params">FlyViewParams</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="nav-section">场景管理</div>
+          <ul class="nav-subitems">
+            <li><a href="#environment">环境设置</a></li>
+            <li><a href="#tone-mapping">色调映射</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="nav-section">后处理效果</div>
+          <ul class="nav-subitems">
+            <li><a href="#bloom">Bloom 辉光</a></li>
+            <li><a href="#ssao">SSAO 环境光遮蔽</a></li>
+            <li><a href="#ssr">SSR 反射</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="nav-section">辅助工具</div>
+          <ul class="nav-subitems">
+            <li><a href="#scene-helper">场景辅助器</a></li>
+            <li><a href="#stats">性能监控</a></li>
+            <li><a href="#screenshot">截图功能</a></li>
+            <li><a href="#picking">交互拾取</a></li>
+            <li><a href="#toolbar">内置工具栏</a></li>
+            <li><a href="#dimension">尺寸信息与标注</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="nav-section">在线示例</div>
+          <ul class="nav-subitems">
+            <li><a href="#online-examples">所有示例</a></li>
+          </ul>
+        </li>
+        <li>
+          <div class="nav-section">更多示例</div>
+          <ul class="nav-subitems">
+            <li><a href="#progress-loader">加载进度条</a></li>
+            <li><a href="#responsive-viewer">响应式查看器</a></li>
+            <li><a href="#custom-picking">自定义拾取</a></li>
+            <li><a href="#dynamic-background">动态背景</a></li>
+            <li><a href="#animation-control">动画控制</a></li>
+            <li><a href="#camera-animation">相机路径动画</a></li>
+            <li><a href="#custom-postprocessing">自定义后处理</a></li>
+            <li><a href="#material-switch">材质切换</a></li>
+          </ul>
+        </li>
+      </ul>
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <a href="index.html" style="color: #007bff;">← 返回 API 文档</a>
+      </div>
+    </nav>
+
+    <main class="content">
+      <h1>📖 Anker3D SDK API使用示例</h1>
+
+  <h2 id="basic-api">基础 API</h2>
+
+  <h3 id="viewer-props">Viewer 属性</h3>
+  <pre><code>// 核心对象访问
+viewer.renderer: WebGLRenderer                         // Three.js 渲染器
+viewer.camera: PerspectiveCamera | OrthographicCamera  // 当前相机
+viewer.scene: SceneObject                              // 当前场景
+viewer.controls: CameraControls                        // 相机控制器
+viewer.domElement: HTMLCanvasElement                   // 画布元素
+
+// 管理器访问
+viewer.renderManager: RenderManager                    // 渲染管理器
+viewer.cameraManager: CameraManager                    // 相机管理器
+viewer.sceneManager: SceneManager                      // 场景管理器
+viewer.componentManager: ComponentManager              // 组件管理器
+viewer.sceneHelperManager: SceneHelperManager          // 辅助器管理器
+viewer.picking: Picking                                // 拾取器</code></pre>
+
+  <h3 id="basic-methods">基础方法</h3>
+  <pre><code>// 可见性控制
+viewer.visible: boolean                          // 设置查看器可见性
+
+// 尺寸更新
+viewer.onResize(): void                          // 手动触发尺寸更新
+
+// 生命周期
+viewer.destroy(reserveResource?: boolean): void  // 销毁查看器</code></pre>
+
+  <h2 id="model-management">模型管理</h2>
+  <p>模型管理是 SDK 的核心功能之一。你可以加载 3D 模型、设置它们的位置、旋转、缩放等属性。</p>
+
+  <h3 id="basic-load">基础加载模型</h3>
+  <div class="example">
+    <strong>最简单的模型加载方式：</strong>
+    <pre><code>viewer.loadModel({
+  urlOrId: '/public/models/product.glb'
+});</code></pre>
+  </div>
+
+  <h3 id="full-load">完整加载模型（带所有选项）</h3>
+  <pre><code>viewer.loadModel({
+  // 【必填】模型路径或ID
+  urlOrId: '/public/models/product.glb',
+
+  // 【可选】环境贴图（提供光照，让模型看起来有立体感）
+  envMapUrl: '/public/environments/studio.hdr',
+
+  // 【可选】回调函数
+  onLoad: (model) => {
+    console.log('模型加载成功:', model);
+  },
+  onProgress: (progress) => {
+    console.log(`加载进度: ${progress}%`);
+  },
+  onError: (error) => {
+    console.error('加载失败:', error);
+  },
+
+  position: [0, 0, 0],          // 【可选】模型位置（[x, y, z]）
+  rotation: [0, 0, 0],          // 【可选】模型旋转（[x, y, z] 单位：度）
+  scale: [1, 1, 1],             // 【可选】模型缩放（[x, y, z]）
+  castShadow: true,             // 【可选】是否产生阴影
+  isAutoCenter: true,           // 【可选】是否自动居中（会自动调整相机位置让模型显示在中心）
+  scaleFactor: 1.5,             // 【可选】自动居中的缩放系数（越大模型显示越小）
+  bottomShadow: true,           // 【可选】是否生成底部阴影（让模型看起来放在地面上）
+  replace: false,               // 【可选】是否替换现有模型
+  keepView: true,               // 【可选】替换时是否保持视角
+});</code></pre>
+
+  <h3 id="resource-id-load">使用资源 ID 加载</h3>
+  <div class="example">
+    <strong>从 DAM 平台加载模型：</strong>
+    <pre><code>// 如果你使用的是 DAM 平台上的模型，可以直接使用 ID
+viewer.loadModel({
+  urlOrId: 'qafKij69qraH',  // DAM 平台的资源 ID
+  envMapUrl: '/public/environments/studio.hdr',
+  onLoad: (model) => {
+    console.log('远程模型加载成功');
+  }
+});</code></pre>
+  </div>
+
+  <h3 id="model-params">ModelParams 接口</h3>
+  <pre><code>interface ModelParams {
+  urlOrId: string;                         // 模型路径或 ID
+  file?: File;                             // 文件对象（拖拽上传）
+  onLoad?: (model: ModelObject) => void;   // 加载完成回调
+  onProgress?: (progress: number) => void; // 加载进度回调
+  onError?: (error: unknown) => void;      // 加载错误回调
+
+  // 变换参数
+  position?: number[];                     // 模型位置 [x, y, z]
+  rotation?: number[];                     // 模型旋转 [x, y, z] (度)
+  scale?: number[];                        // 模型缩放 [x, y, z]
+
+  // 渲染参数
+  castShadow?: boolean;                   // 是否产生阴影
+  envMapUrl?: string;                     // 环境贴图路径
+
+  // 场景参数
+  scene?: SceneObject;                    // 目标场景
+  isAutoCenter?: boolean;                 // 是否自动居中
+  scaleFactor?: number;                   // 缩放系数
+  bottomShadow?: boolean;                 // 是否显示底部阴影
+
+  // 替换参数
+  replace?: boolean;                      // 是否替换现有模型
+  keepView?: boolean;                     // 替换时是否保持视角
+
+  modelObject?: ModelObject;              // 指定模型对象
+}</code></pre>
+
+  <h3 id="model-operations">模型操作</h3>
+  <pre><code>// 添加模型到场景
+viewer.addModel(model: ModelObject, useModelView?: boolean): void
+
+// 异步加载模型（通过资源管理器）
+ResourceManager.loadModel(params: ModelParams): Promise&lt;ModelObject&gt;</code></pre>
+
+  <h2 id="camera-control">相机控制</h2>
+  <p>相机决定你从哪个角度看 3D 模型。相机可以移动位置、对准目标、缩放视野。</p>
+
+  <h3 id="view-switch">快速视角切换</h3>
+  <pre><code>// 切换到前视图（从正面看）
+viewer.cameraManager.switchView(Anker3D.CameraView.Front);
+
+// 切换到后视图（从后面看）
+viewer.cameraManager.switchView(Anker3D.CameraView.Back);
+
+// 切换到左视图（从左边看）
+viewer.cameraManager.switchView(Anker3D.CameraView.Left);
+
+// 切换到右视图（从右边看）
+viewer.cameraManager.switchView(Anker3D.CameraView.Right);
+
+// 切换到顶视图（从上方看）
+viewer.cameraManager.switchView(Anker3D.CameraView.Top);
+
+// 切换到底视图（从下方看）
+viewer.cameraManager.switchView(Anker3D.CameraView.Bottom);</code></pre>
+
+  <div class="example">
+    <strong>实际应用示例：创建一个视角切换按钮</strong>
+    <pre><code>// 在HTML中
+&lt;button onclick="switchToFront()"&gt;前视图&lt;/button&gt;
+
+// 在JavaScript中
+window.switchToFront = () =>
+  viewer.cameraManager.switchView(Anker3D.CameraView.Front);</code></pre>
+  </div>
+
+  <h3 id="flyto">平滑相机动画（flyTo）</h3>
+  <pre><code>// 平滑飞行到指定位置
+viewer.cameraManager.flyTo({
+  view: {
+    position: [0, 0, 5],      // 相机位置：[x, y, z]
+    target: [0, 0, 0]         // 相机看的目标点
+  },
+  duration: 1000,             // 动画持续时间（毫秒）
+  easing: Anker3D.Easing.Cubic_Out,
+  onFinish: () => {
+    console.log('相机动画完成！');
+  }
+});</code></pre>
+
+  <div class="example">
+    <strong>实际应用示例：切换到近距离观察</strong>
+    <pre><code>function showDetailView() {
+  viewer.cameraManager.flyTo({
+    view: {
+      position: [2, 1, 2],     // 比较近的位置
+      target: [0, 0, 0]        // 仍然看向模型中心
+    },
+    duration: 1500,
+    easing: Anker3D.Easing.Cubic_Out
+  });
+}
+
+function showNormalView() {
+  viewer.cameraManager.flyTo({
+    view: {
+      position: [0, 1, 5],     // 正常距离
+      target: [0, 0, 0]
+    },
+    duration: 1000,
+    easing: Anker3D.Easing.Cubic_Out
+  });
+}</code></pre>
+  </div>
+
+  <h3 id="save-restore-view">保存和恢复视角</h3>
+  <pre><code>// 保存当前视角
+const myView = viewer.cameraManager.getView();
+console.log('已保存视角:', myView);
+
+// 稍后恢复这个视角
+viewer.cameraManager.setView(myView);
+
+// 或者使用 flyTo 平滑地恢复到之前的视角
+viewer.cameraManager.flyTo({
+  view: myView,
+  duration: 1000
+});</code></pre>
+
+  <h3 id="save-view-methods">视角管理方法</h3>
+  <pre><code>// 获取当前视角
+viewer.cameraManager.getView(): View
+
+// 设置视角
+viewer.cameraManager.setView(view: View): void
+
+// 保存视角到模型
+viewer.cameraManager.saveViewToModel(model: ModelObject): void
+
+// 相机动画方法
+viewer.cameraManager.flyTo(params: FlyViewParams): TWEEN.Tween | null
+viewer.cameraManager.moveAlongThePath(params: PathMoveParams): void
+viewer.cameraManager.switchView(view: CameraView): void</code></pre>
+
+  <h3 id="model-focus">模型聚焦</h3>
+  <pre><code>// 相机聚焦模型（自动调整相机位置和视野）
+viewer.cameraManager.lookAtModel(object: ModelObject, scaleFactor?: number): void
+
+// 聚焦模型并保持视角
+viewer.cameraManager.lookAtModelAndKeepView(object: ModelObject, scaleFactor?: number, view: View): void</code></pre>
+
+  <div class="example">
+    <strong>使用示例：</strong>
+    <pre><code>// 加载模型后自动聚焦
+viewer.loadModel({
+  urlOrId: '/models/product.glb',
+  onLoad: (model) => {
+    viewer.cameraManager.lookAtModel(model, 1.5);  // 缩放系数1.5
+  }
+});</code></pre>
+  </div>
+
+  <h3 id="horizontal-hunting">水平摆动效果</h3>
+  <pre><code>// 开始水平摆动（类似 ModelViewer 的操作提示）
+viewer.cameraManager.horizontalHunting(angle?: number, iconElement: HTMLElement, iconOffset?: number): TWEEN.Tween
+
+// 停止水平摆动
+viewer.cameraManager.stopHorizontalHunting(): void</code></pre>
+
+  <h3 id="view-interface">View 接口</h3>
+  <pre><code>interface View {
+  position: Vector3 | {x,y,z} | number[];   // 相机位置
+  target?: Vector3 | {x,y,z} | number[];    // 相机目标
+  polarAngle?: number;                      // 俯仰角
+  azimuthalAngle?: number;                  // 水平角
+  normal?: Vector3;                         // 相机朝向
+  near?: number;                            // 近裁切面
+  far?: number;                             // 远裁切面
+}</code></pre>
+
+  <h3 id="flyview-params">FlyViewParams 接口</h3>
+  <pre><code>interface FlyViewParams {
+  view: View;                          // 目标视角
+  motion?: MotionType;                 // 运动方式：Linear | Arc
+  duration?: number;                   // 持续时间（毫秒），默认 1000
+  easing?: EasingFunction;             // 缓动函数
+  delay?: number;                      // 延迟时间，默认 0
+  onFinish?: () => void;               // 完成回调
+}</code></pre>
+
+  <h2 id="scene-management">场景管理</h2>
+
+  <h3 id="environment">环境设置</h3>
+  <pre><code>// 加载环境贴图（HDR）
+viewer.scene.loadEnvironmentMap(url: string, asBackground?: boolean): void
+
+// 设置背景（纯色或纹理）
+viewer.scene.setBackground(color: string | Color | Texture): void
+
+// 示例：加载 HDR 环境
+viewer.scene.loadEnvironmentMap('/public/environments/studio.hdr', false);
+
+// 示例：设置纯色背景
+viewer.scene.setBackground('#242424');</code></pre>
+
+  <h3 id="tone-mapping">色调映射</h3>
+  <pre><code>// 设置色调映射类型
+viewer.renderer.toneMapping = Anker3D.NeutralToneMapping;  // 推荐
+// 可选值：LinearToneMapping, ReinhardToneMapping, CineonToneMapping 等
+
+// 设置曝光值
+viewer.renderer.toneMappingExposure = 1.0;  // 默认 1.0，可调整 0-2</code></pre>
+
+  <h2 id="postprocessing">后处理效果</h2>
+  <p>后处理效果是在渲染完成后对画面进行二次处理，可以添加各种视觉特效。</p>
+
+  <h3 id="bloom">Bloom 辉光效果</h3>
+  <p>Bloom 让亮的部分变得更亮，产生发光效果。常用于金属材质、玻璃、灯光等。</p>
+
+  <div class="example">
+    <strong>基础使用：</strong>
+    <pre><code>const bloomPass = new Anker3D.BloomPassComponent();
+viewer.addComponent(bloomPass);</code></pre>
+  </div>
+
+  <h4>应用到特定对象：</h4>
+  <pre><code>// 加载模型后
+viewer.loadModel({
+  urlOrId: '/models/product.glb',
+  onLoad: (model) => {
+    const part = model.getObjectByName('screen');  // 查找屏幕部件
+    if (part) {
+      bloomPass.applyToObject(part);  // 只对屏幕应用发光
+    }
+  }
+});</code></pre>
+
+  <h4>调整参数：</h4>
+  <pre><code>bloomPass.threshold = 0.5;  // 阈值（0-1），值越大发光范围越小
+bloomPass.strength = 1.0;   // 强度（0-3），值越大越亮
+bloomPass.radius = 0.5;     // 半径（0-1），值越大发光范围越广</code></pre>
+
+  <div class="example">
+    <strong>完整示例：切换发光效果</strong>
+    <pre><code>let bloomEnabled = false;
+
+function toggleBloom() {
+  const bloomPass = new Anker3D.BloomPassComponent();
+  bloomPass.threshold = 0.6;
+  bloomPass.strength = 1.5;
+
+  if (bloomEnabled) {
+    viewer.removeComponent(bloomPass);
+    bloomEnabled = false;
+  } else {
+    viewer.addComponent(bloomPass);
+    bloomEnabled = true;
+  }
+}</code></pre>
+  </div>
+
+  <h3 id="ssao">SSAO 环境光遮蔽</h3>
+  <p>SSAO 让物体之间的接触区域变暗，增加立体感和真实感。</p>
+  <pre><code>const ssaoPass = new Anker3D.SSAOPassComponent();
+ssaoPass.kernelRadius = 8;        // 采样范围
+ssaoPass.minDistance = 0.005;     // 最小检测距离
+ssaoPass.maxDistance = 0.1;       // 最大检测距离
+viewer.addComponent(ssaoPass);</code></pre>
+
+  <h3 id="ssr">SSR 屏幕空间反射</h3>
+  <p>SSR 让光滑的表面能反射周围的物体，常用于地面、水面、玻璃等。</p>
+  <pre><code>const ssrPass = new Anker3D.SSRPassComponent();
+ssrPass.resolutionScale = 1;      // 分辨率缩放
+ssrPass.thickness = 0.018;        // 反射厚度
+viewer.addComponent(ssrPass);</code></pre>
+
+  <div class="note">
+    <strong>注意：</strong>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+      <li>后处理效果会占用额外的性能，移动设备建议谨慎使用</li>
+      <li>多个后处理效果可以同时使用</li>
+      <li>效果参数需要在添加到查看器前设置</li>
+    </ul>
+  </div>
+
+  <h2 id="helper-tools">辅助工具</h2>
+
+  <h3 id="scene-helper">场景辅助器</h3>
+  <pre><code>// 显示/隐藏辅助器（坐标轴、网格等）
+viewer.sceneHelperManager.show(show: boolean): void</code></pre>
+
+  <h3 id="stats">性能监控</h3>
+  <pre><code>// 显示性能监控面板
+viewer.showStats(): void</code></pre>
+
+  <h3 id="screenshot">截图功能</h3>
+  <pre><code>// 单张截图
+viewer.screenShot(params: ScreenShotParams): string
+
+// 环绕截图（360度旋转截图）
+viewer.encircleScreenShot(params: ScreenShotParams): string[]</code></pre>
+
+  <h4>ScreenShotParams 接口</h4>
+  <pre><code>interface ScreenShotParams {
+  width?: number;          // 截图宽度
+  height?: number;         // 截图高度
+  format?: string;         // 图片格式：'png' | 'jpeg'
+  quality?: number;        // 图片质量 (0-1)
+}</code></pre>
+
+  <div class="example">
+    <strong>使用示例：</strong>
+    <pre><code>// 拍摄 4K 高清截图
+const screenshot = viewer.screenShot({
+  width: 3840,
+  height: 2160,
+  format: 'png',
+  quality: 1.0
+});
+console.log('截图数据:', screenshot);  // Base64 字符串</code></pre>
+  </div>
+
+  <h3 id="picking">交互拾取</h3>
+  <h3 id="toolbar">内置工具栏</h3>
+  <p>SDK 自动提供一个无需外部 HTML 的工具栏组件（<code>viewer.toolbar</code>）。横屏时位于左侧竖排，竖屏时位于顶部横排，尺寸基于 vmin 自适应。</p>
+  <div class="example">
+    <strong>常用 API：</strong>
+    <pre><code>// 显示/隐藏子按钮
+viewer.toolbar.showMeasure();
+viewer.toolbar.hideCapture();
+viewer.toolbar.showFullscreen();
+viewer.toolbar.showShare();
+
+// 多语言切换（EN/CN/DE）
+viewer.toolbar.setLanguage('CN');</code></pre>
+  </div>
+  <p><strong>按钮说明：</strong> Angle（六视图）悬停展开一排图标并支持延迟收起；Measure 当任一模型尺寸可见时高亮；Capture 按当前画布尺寸×DPR 截图；Fullscreen 切换全屏；Share 悬停展开二维码与复制链接面板。</p>
+  <div class="note">
+    <strong>离线二维码：</strong>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+      <li>默认“离线优先”：本地动态导入 <code>qrcode</code> 生成 dataURL；失败自动回退在线服务。</li>
+      <li>如需仅在线，可在自行实例化工具栏时传入 <code>{ qrOffline: false }</code>。</li>
+      <li>离线模式需安装依赖：<code>npm i qrcode</code>。</li>
+    </ul>
+  </div>
+
+  <p>拾取功能允许你检测鼠标点击或触摸的 3D 对象。</p>
+  <pre><code>// 监听画布点击事件
+viewer.domElement.addEventListener('click', (event) => {
+  const result = viewer.picking.pickObject(event);
+
+  if (result) {
+    console.log('拾取到对象:', result.object);
+    console.log('交点位置:', result.point);        // [x, y, z]
+    console.log('交点法线:', result.face?.normal); // 面法线
+  }
+});</code></pre>
+
+  <h3 id="dimension">尺寸信息与标注</h3>
+  <p>在不修改模型几何的前提下，展示“长、宽、高”尺寸标注，支持单位切换与手动覆盖显示值。</p>
+  <div class="example">
+    <strong>快速上手：</strong>
+    <pre><code>// 开启尺寸标注（基于模型包围盒自动计算）
+model.dimensionVisible = true;
+
+// 切换单位（mm/cm/dm/m/in/ft）
+model.changeDimensionUnit(Anker3D.LengthUnit.IN);
+
+// 获取当前显示尺寸（按当前单位返回，保留 0.01 精度）
+const dim = model.getDimension();
+console.log(dim.length, dim.width, dim.height);</code></pre>
+  </div>
+
+  <div class="example">
+    <strong>手动覆盖显示尺寸：</strong>
+    <pre><code>// 以毫米传入
+model.setDimensionInfo(120.5, 60.2, 35.0, Anker3D.LengthUnit.MM);
+
+// 或以英寸传入（内部转换为毫米保存，展示按当前单位）
+model.setDimensionInfo(4.75, 2.37, 1.38, Anker3D.LengthUnit.IN);</code></pre>
+  </div>
+
+  <div class="example">
+    <strong>仅读取尺寸（不显示标注）：</strong>
+    <pre><code>model.computeBoundingBox();                 // 确保包围盒最新
+const size = Anker3D.Utils.getObjectSize(model);  // Vector3: x/y/z（米）
+const center = Anker3D.Utils.getObjectCenter(model);</code></pre>
+  </div>
+
+  <div class="note">
+    <strong>注意：</strong>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+      <li>内部以米作为几何单位；标注默认显示为毫米，切换英寸时按 1 in = 25.4 mm 换算。</li>
+      <li>展示精度默认为 0.01（四舍五入）。</li>
+      <li>标注几何在创建时按包围盒布局；若几何/缩放变化较大，建议关闭后重建：<code>model.dimensionVisible = false; model.computeBoundingBox(); model.dimensionVisible = true;</code></li>
+      <li><code>setDimensionInfo</code> 仅影响显示文本，不改变包围盒或网格。</li>
+    </ul>
+  </div>
+
+  <div class="example">
+    <strong>样式与是否固定：</strong>
+    <pre><code>// BBox（默认）
+model.setDimensionStyle(Anker3D.DimensionStyle.BBox);       // 动态
+model.setDimensionStyle(Anker3D.DimensionStyle.BBox, true); // 固定
+
+// Corner（三轴从同一拐角出发）
+model.setDimensionStyle(Anker3D.DimensionStyle.Corner);       // 动态
+model.setDimensionStyle(Anker3D.DimensionStyle.Corner, true); // 固定</code></pre>
+  </div>
+
+  <div class="example">
+    <strong>实际应用：点击模型高亮</strong>
+    <pre><code>viewer.domElement.addEventListener('click', (event) => {
+  const result = viewer.picking.pickObject(event);
+
+  if (result && result.object) {
+    // 高亮选中的对象（改变材质颜色）
+    result.object.material.color.set('#ff0000');
+  }
+});</code></pre>
+  </div>
+
+  <h2 id="online-examples">在线示例</h2>
+  <p>访问以下在线示例，快速了解 SDK 的各种功能：</p>
+
+  <h3>基础示例</h3>
+  <ul style="line-height: 2;">
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=simple" target="_blank">简单示例</a> - 最简单的模型加载示例</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=loadModel" target="_blank">加载三维平台模型</a> - 完整的模型加载示例</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=loadLocalModel" target="_blank">加载本地模型</a> - 加载本地文件示例</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=asyncLoad" target="_blank">异步加载</a> - 使用 async/await 加载模型</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=changeModel" target="_blank">切换模型</a> - 动态切换不同模型</li>
+  </ul>
+
+  <h3>视角控制</h3>
+  <ul style="line-height: 2;">
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=view" target="_blank">视角切换</a> - 预设视角切换示例</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=multipleViewers" target="_blank">多视图</a> - 多个查看器同时显示</li>
+  </ul>
+
+  <h3>材质与光照</h3>
+  <ul style="line-height: 2;">
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=switchMaterial" target="_blank">材质切换</a> - 动态切换模型材质</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=environment" target="_blank">环境贴图</a> - HDR 环境贴图示例</li>
+  </ul>
+
+  <h3>后处理效果</h3>
+  <ul style="line-height: 2;">
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=bloom" target="_blank">泛光效果</a> - Bloom 后处理效果</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=ssao" target="_blank">环境光遮蔽</a> - SSAO 后处理效果</li>
+  </ul>
+
+  <h3>动画</h3>
+  <ul style="line-height: 2;">
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=animation" target="_blank">动画管理</a> - 动画播放、暂停、循环控制示例</li>
+  </ul>
+
+  <h3>交互功能</h3>
+  <ul style="line-height: 2;">
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=drop" target="_blank">拖拽加载</a> - 拖拽文件加载模型</li>
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=dimensions" target="_blank">尺寸标注</a> - 显示模型尺寸信息</li>
+  </ul>
+
+  <h3>高级功能</h3>
+  <ul style="line-height: 2;">
+    <li><a href="https://studio3d-sit.anker-in.com/anker-viewer/examples/index.html?example=sku" target="_blank">SKU切换</a> - SKU产品切换示例</li>
+  </ul>
+
+  <h2 id="more-examples">更多示例</h2>
+  <p>以下是一些常见场景的完整代码示例，帮助你快速集成 SDK 功能。</p>
+
+  <h3 id="progress-loader">示例 1: 带加载进度条的查看器</h3>
+  <div class="example">
+    <pre><code>const container = document.getElementById('viewer');
+const viewer = new Anker3D.Viewer(container);
+
+const progressBar = document.getElementById('progress-bar');
+const progressPercent = document.getElementById('progress-percent');
+
+viewer.loadModel({
+  urlOrId: '/models/large-model.glb',
+  onProgress: (progress) => {
+    progressBar.style.width = progress + '%';
+    progressPercent.textContent = progress + '%';
+  },
+  onLoad: () => {
+    progressBar.style.display = 'none';
+  },
+  onError: (error) => {
+    console.error(error);
+    progressBar.style.display = 'none';
+    alert('模型加载失败');
+  }
+});</code></pre>
+  </div>
+
+  <h3 id="responsive-viewer">示例 2: 响应式查看器</h3>
+  <div class="example">
+    <pre><code>const viewer = new Anker3D.Viewer(container);
+
+// 监听窗口大小变化
+window.addEventListener('resize', () => {
+  viewer.onResize();
+});
+
+// 手动触发尺寸更新
+viewer.onResize();</code></pre>
+  </div>
+
+  <h3 id="custom-picking">示例 3: 自定义拾取交互</h3>
+  <div class="example">
+    <pre><code>viewer.domElement.addEventListener('click', (event) => {
+  const result = viewer.picking.pickObject(event);
+
+  if (result) {
+    console.log('Selected model:', result.object.name);
+    console.log('Pick point:', result.point);
+
+    // 高亮选中的对象
+    viewer.scene.traverse((obj) => {
+      if (obj !== result.object) {
+        obj.userData.originalMaterial = obj.material;
+        obj.material = outlineMaterial;
+      }
+    });
+  }
+});</code></pre>
+  </div>
+
+  <h3 id="dynamic-background">示例 4: 动态切换背景</h3>
+  <div class="example">
+    <pre><code>const backgrounds = ['#000000', '#ffffff', '#242424'];
+let currentBg = 0;
+
+document.getElementById('switch-bg').addEventListener('click', () => {
+  currentBg = (currentBg + 1) % backgrounds.length;
+  viewer.scene.background = new THREE.Color(backgrounds[currentBg]);
+});</code></pre>
+  </div>
+
+  <h3 id="animation-control">示例 5: 完整的动画控制</h3>
+  <div class="example">
+    <pre><code>viewer.loadModel({
+  urlOrId: '/models/animated-character.glb',
+  onLoad: (model) => {
+    const animManager = model.animationManager;
+
+    // 播放第一个动画
+    animManager.play(animManager.getActionsNames()[0]);
+
+    // 添加控制面板
+    document.getElementById('play').addEventListener('click', () => {
+      animManager.play();
+    });
+
+    document.getElementById('pause').addEventListener('click', () => {
+      animManager.pause();
+    });
+
+    document.getElementById('speed').addEventListener('input', (e) => {
+      animManager.speed = parseFloat(e.target.value);
+    });
+
+    document.getElementById('loop').addEventListener('change', (e) => {
+      animManager.loop = e.target.checked;
+    });
+  }
+});</code></pre>
+  </div>
+
+  <h3 id="camera-animation">示例 6: 相机路径动画</h3>
+  <div class="example">
+    <pre><code>// 定义相机路径上的关键点
+const keyframes = [
+  { position: [2, 1, 2], target: [0, 0, 0] },
+  { position: [0, 2, 2], target: [0, 0, 0] },
+  { position: [-2, 1, 2], target: [0, 0, 0] },
+  { position: [0, 1, -2], target: [0, 0, 0] }
+];
+
+// 创建路径动画
+viewer.cameraManager.pathMove({
+  keyframes,
+  duration: 5000,  // 5秒完成一圈
+  loop: true,
+  easing: 'easeInOutQuad'
+});</code></pre>
+  </div>
+
+  <h3 id="custom-postprocessing">示例 7: 自定义后处理效果</h3>
+  <div class="example">
+    <pre><code>// 启用 Bloom 效果
+viewer.renderManager.bloom.enabled = true;
+viewer.renderManager.bloom.setParams({
+  strength: 1.5,
+  threshold: 0.5,
+  radius: 0.8
+});
+
+// 启用 SSAO 效果
+viewer.renderManager.ssao.enabled = true;
+viewer.renderManager.ssao.setParams({
+  radius: 0.5,
+  minDistance: 0.001,
+  maxDistance: 0.1
+});
+
+// 可以通过 UI 控制动态切换
+document.getElementById('toggle-bloom').addEventListener('click', () => {
+  viewer.renderManager.bloom.enabled = !viewer.renderManager.bloom.enabled;
+});</code></pre>
+  </div>
+
+  <h3 id="material-switch">示例 8: 材质实时切换</h3>
+  <div class="example">
+    <pre><code>viewer.loadModel({
+  urlOrId: '/models/product.glb',
+  onLoad: (model) => {
+    // 准备不同的材质
+    const materials = {
+      metal: new THREE.MeshStandardMaterial({
+        metalness: 1.0,
+        roughness: 0.2,
+        color: 0xcccccc
+      }),
+      plastic: new THREE.MeshStandardMaterial({
+        metalness: 0.0,
+        roughness: 0.5,
+        color: 0x3498db
+      }),
+      glass: new THREE.MeshPhysicalMaterial({
+        metalness: 0.0,
+        roughness: 0.1,
+        transmission: 0.9,
+        thickness: 0.5
+      })
+    };
+
+    // 切换材质
+    document.getElementById('material-select').addEventListener('change', (e) => {
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.material = materials[e.target.value];
+        }
+      });
+    });
+  }
+});</code></pre>
+  </div>
+
+  <div class="note">
+    <p><strong>💡 提示：</strong>更多信息请访问 <a href="index.html">API 文档首页</a> 或 <a href="./api-使用指南.md">完整使用指南</a>。</p>
+  </div>
+    </main>
+  </div>
+
+  <script>
+    // 目录折叠/展开功能
+    const navSections = document.querySelectorAll('.nav-section');
+
+    // 默认全部折叠
+    navSections.forEach(section => {
+      section.classList.add('collapsed');
+
+      section.addEventListener('click', () => {
+        section.classList.toggle('collapsed');
+      });
+    });
+
+    // 添加目录导航高亮效果
+    const links = document.querySelectorAll('.sidebar a[href^="#"]');
+
+    function updateActiveLink() {
+      const sections = document.querySelectorAll('h2, h3');
+      const scrollPos = window.scrollY + 150;
+
+      links.forEach(link => {
+        const href = link.getAttribute('href');
+        const section = document.querySelector(href);
+
+        if (section && section.offsetTop <= scrollPos && section.offsetTop + section.offsetHeight > scrollPos) {
+          document.querySelectorAll('.sidebar a.active').forEach(a => a.classList.remove('active'));
+          link.classList.add('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+    updateActiveLink();
+  </script>
+</body>
+</html>
+

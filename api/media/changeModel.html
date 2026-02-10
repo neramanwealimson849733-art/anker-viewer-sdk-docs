@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="https://studio3d-sit.anker-in.com/anker-viewer/icons/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anker3D-切换模型</title>
+  <link type="text/css" rel="stylesheet" href="style/main.css">
+</head>
+<body>
+
+<div id="anker-viewer"></div>
+<script type="module">
+  //引入SDK
+  import * as Anker3D from "../src/index.ts";
+
+
+  const HDR_ENV_LIST = ["A2697.hdr", "A3874.hdr","aircraft_workshop_01_1k.hdr","S1pro.hdr","lebombo_1k.hdr",
+    "lightroom_14b.hdr","moon_1k.hdr","moon_4k.hdr"];
+  const models = ['A2697.glb','A3874.glb','Bracelet.glb','S1pro.glb','SM_A1763.glb','outside.glb','B121A.glb'];
+  const scaleFactor = 1.1;
+  const debugParams = {
+    model:models[0],
+  };
+
+  //获取容器
+  const container = document.getElementById('anker-viewer');
+
+  //创建查看器
+  const viewer = new Anker3D.Viewer(container);
+  //加载模型
+  loadModel(viewer,debugParams.model,debugParams.environment);
+
+  function loadModel(viewer,modelName,hdr){
+    viewer.loadModel({
+      urlOrId:'../models/'+modelName,//资源路径或者id
+      onLoad:(model)=>{
+        console.log(modelName+'加载完成！',model);
+      },
+      onProgress:(progress) => {
+        console.log(modelName+'加载进度：'+progress);
+      },
+      onError:(err) => {
+        console.error(err);
+      },
+      scene:viewer.scene,//模型所在的场景，默认添加到默认场景中
+      isAutoCenter:true,//是否自动居中
+      scaleFactor:scaleFactor,//模型自动居中的缩放系数，该系数影响相机与模型的距离，默认为1.1，值越大模型越小
+      bottomShadow:true,//生成底部阴影
+      replace:true, //是否替换现有模型
+    });
+  }
+
+  // 挂载到全局 window 对象，便于调试
+  window.viewer = viewer;
+  window.Anker3D = Anker3D;
+
+
+  //创建调试UI
+  createDebugGUI();
+  function createDebugGUI() {
+    const debugPanel = new Anker3D.GUI()
+    debugPanel.add(debugParams, 'model', models)
+            .name('切换模型')
+            .onChange((value) => {
+              loadModel(viewer,value,HDR_ENV_LIST[models.indexOf(value)]);
+            });
+
+
+  }
+</script>
+</body>
+</html>

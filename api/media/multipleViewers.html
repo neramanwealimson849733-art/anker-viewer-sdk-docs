@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="https://studio3d-sit.anker-in.com/anker-viewer/icons/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiple Viewer</title>
+  <link type="text/css" rel="stylesheet" href="style/main.css">
+  <style>
+    body{
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+<div id="anker-viewer1" style="width: 50%;height: 100%;position: absolute">
+  <div id="interaction1" class="interaction">
+    <object data="../icons/gesture.svg" type="image/svg+xml" width="45" height="45">
+    </object>
+  </div>
+</div>
+<div id="anker-viewer2" style="width: 50%;height: 100%;position: absolute;left: 50%">
+  <div id="interaction2" class="interaction">
+    <object data="../icons/gesture.svg" type="image/svg+xml" width="45" height="45">
+    </object>
+  </div>
+</div>
+<script type="module">
+  import * as Anker3D from "../src/index.ts"
+
+  const container1 = document.getElementById('anker-viewer1');
+  const container2 = document.getElementById('anker-viewer2');
+
+  const viewer1 = createViewer(container1);
+  let viewer2 = createViewer(container2);
+
+  const interaction1 = document.getElementById('interaction1');
+  const interaction2 = document.getElementById('interaction2');
+
+  loadModel(viewer1,'S1pro.glb','A2697.hdr',interaction1);
+  loadModel(viewer2,'A2697.glb','A2697.hdr',interaction2);
+
+  function createViewer(container){
+
+    const viewer = new Anker3D.Viewer(container,{});
+
+    viewer.currentModel = null;
+    viewer.modelMap = {};
+
+    return viewer;
+  }
+
+  function loadModel(viewer,modelName,hdr,interaction){
+
+    if(interaction)
+      interaction.style.display = 'none';
+
+    const model = viewer.loadModel({
+      urlOrId:'../models/'+modelName,//资源路径或者id
+      onLoad:(model)=>{
+        console.log(modelName+'加载完成！',model);
+
+        //如果手动取消了手势则不再显示
+        if(interaction && !viewer.cameraManager.isCancelHunting){
+          viewer.cameraManager.horizontalHunting(10,interaction,80);
+          interaction.style.display='flex';
+        }
+
+      },
+      onProgress:(progress) => {
+        // console.log(modelName+'模型加载进度：'+progress);
+      },
+      onError:(err) => {
+        console.error(err);
+      },
+      position:[0,0,0],//位置
+      rotation:[0,0,0],//旋转
+      scale:[1,1,1],//缩放
+      scene:viewer.sceneManager.defaultScene,//模型所在的场景，默认添加到默认场景中
+      envMapUrl:"../environments/A2697.hdr"/*+hdr*/,//模型环境贴图路径
+      castShadow:true,//是否启用阴影
+      isAutoCenter:true,//是否自动居中
+      scaleFactor:1.1,//模型自动居中的缩放系数，该系数影响相机与模型的距离，默认为1.1，值越大模型越小
+      bottomShadow:true,//生成底部阴影
+      replace:true,//替换当前模型
+    });
+
+  }
+
+
+  // 挂载到全局 window 对象，便于调试
+  window.viewer1 = viewer1;
+  window.viewer2 = viewer2;
+
+  const HDR_ENV_LIST = ["A2697.hdr", "A3874.hdr","aircraft_workshop_01_1k.hdr","S1pro.hdr","lebombo_1k.hdr",
+    "lightroom_14b.hdr","moon_1k.hdr","moon_4k.hdr","music_hall_01_1k.hdr","neutral.hdr","pillars_1k.hdr",
+    "S1pro.hdr", "spot1Lux.hdr","spruit_sunrise_1k_HDR.hdr","studio_small_01_1k.hdr",
+    "whipple_creek_regional_park_04_1k.hdr", "white_furnace.hdr"];
+  const models = ['A2697.glb','A3874.glb','Bracelet.glb','S1pro.glb','SM_A1763.glb','A9185.glb','B121A.glb'];
+
+  /**
+   * 切换查看器模型
+   */
+  function changeModel(viewer,value,interaction){
+    //停止手势
+    viewer.cameraManager.stopHorizontalHunting();
+    loadModel(viewer,value,HDR_ENV_LIST[models.indexOf(value)],interaction);
+
+  }
+
+  createDebugGUI();
+  function createDebugGUI() {
+    const debugPanel = new Anker3D.GUI()
+    // 背景色参数
+    const debugParams = {
+      background: '#242424',
+      showHelper: false,
+      environment: "S1pro.hdr",
+      model1:'S1pro.glb',
+      model2:'A2697.glb',
+      changeView:()=>{},
+
+    }
+
+    debugPanel.add(debugParams, 'model1', models)
+            .name('切换Viewer1模型')
+            .onChange((value) => {
+              changeModel(viewer1,value,interaction1);
+            });
+
+    debugPanel.add(debugParams, 'model2', models)
+            .name('切换Viewer2模型')
+            .onChange((value) => {
+              changeModel(viewer2,value,interaction2);
+            });
+    return debugPanel
+  }
+
+</script>
+</body>
+</html>

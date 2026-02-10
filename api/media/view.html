@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="https://studio3d-sit.anker-in.com/anker-viewer/icons/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anker3D-视角切换</title>
+  <link type="text/css" rel="stylesheet" href="style/main.css">
+</head>
+<body>
+
+<div id="anker-viewer"></div>
+<script type="module">
+  //引入SDK
+  import * as Anker3D from "../src/index.ts"
+
+  //获取容器
+  const container = document.getElementById('anker-viewer');
+
+  //创建查看器
+  const viewer = new Anker3D.Viewer(container,{
+    modelParams:{//模型参数
+      urlOrId:'M3EF684585',//资源路径或者id
+    }
+  });
+
+
+  // 挂载到全局 window 对象，便于调试
+  window.viewer = viewer;
+  window.Anker3D = Anker3D;
+
+  createDebugGUI();
+  //创建调试UI
+  function createDebugGUI() {
+    const debugPanel = new Anker3D.GUI()
+    // 背景色参数
+    const debugParams = {
+      fixedView:Anker3D.CameraView.Front,
+      addView:()=>{},
+      view:''
+    };
+
+    const fixedViewArray = [Anker3D.CameraView.Front,Anker3D.CameraView.Back,Anker3D.CameraView.Left,
+      Anker3D.CameraView.Right,Anker3D.CameraView.Top,Anker3D.CameraView.Bottom];
+    const cameraFolder = debugPanel.addFolder("视角");
+    cameraFolder.open();
+    const views = [];
+    const viewNames = [];
+    let viewItem;
+
+    cameraFolder.add(debugParams,"fixedView",fixedViewArray)
+            .name('切换固定视角')
+            .onChange(view=>{
+              viewer.cameraManager.switchView(view);
+            });
+    cameraFolder.add(debugParams,'addView')
+            .name('新增视角')
+            .onFinishChange(()=>{
+              console.log('add view');
+              views.push(viewer.cameraManager.getView());
+              viewNames.push('视角'+views.length);
+
+              if(viewItem){
+                viewItem.remove();
+              }
+              viewItem = cameraFolder.add(debugParams,"view",viewNames)
+                      .name('切换视角')
+                      .onChange((name)=>{
+                        const view = views[viewNames.indexOf(name)];
+                        viewer.cameraManager.flyTo({view:view,easing:Anker3D.Easing.Cubic_Out});
+                      });
+
+            });
+  }
+
+</script>
+</body>
+</html>

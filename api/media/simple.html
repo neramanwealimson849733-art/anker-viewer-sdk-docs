@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="https://studio3d-sit.anker-in.com/anker-viewer/icons/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anker3D-简易模式</title>
+  <link type="text/css" rel="stylesheet" href="style/main.css">
+</head>
+<body>
+
+<div id="anker-viewer" ></div>
+<script type="module">
+  //引入SDK
+  import * as Anker3D from "../src/index.ts";
+
+  //创建查看器
+  const viewer = new Anker3D.Viewer(document.getElementById('anker-viewer'),{
+    modelParams:{
+      urlOrId:'M22AD1BD5E',//三维平台模型id
+    }
+  });
+
+</script>
+</body>
+</html>
